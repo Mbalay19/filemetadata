@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Metadata Microservice | Professional Portfolio</title>
+    <meta name="description" content="Professional File Metadata Microservice - Upload files and get detailed metadata including name, type, and size">
+    <link rel="shortcut icon" href="https://cdn.freecodecamp.org/universal/favicons/favicon-32x32.png" type="image/x-icon"/>
+    <link href="/public/style.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>File Metadata Microservice</h1>
+        
+        <h2>Upload & Analyze</h2>
+        <p>
+            Select any file to analyze its metadata properties
+        </p>
+        
+        <div class="view">
+            <h3 id="output">Ready to analyze your file</h3>
+            <form enctype="multipart/form-data" method="POST" action="/api/fileanalyse">
+                <input id="inputfield" type="file" name="upfile" required>
+                <input id="button" type="submit" value="Analyze File">
+            </form>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>
+            Built with ❤️ for 
+            <a href="https://www.freecodecamp.org" target="_blank" rel="noopener">freeCodeCamp</a>
+        </p>
+    </div>
+
+    <script>
+        const form = document.querySelector('form');
+        const output = document.getElementById('output');
+        const fileInput = document.getElementById('inputfield');
+
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const fileName = e.target.files[0].name;
+                output.textContent = `Selected: ${fileName}`;
+                output.style.color = '#4299e1';
+            }
+        });
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!fileInput.files.length) {
+                output.textContent = 'Please select a file first';
+                output.style.color = '#e53e3e';
+                return;
+            }
+
+            output.textContent = 'Analyzing file...';
+            output.style.color = '#4299e1';
+
+            const formData = new FormData();
+            formData.append('upfile', fileInput.files[0]);
+
+            fetch('/api/fileanalyse', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    output.textContent = `Error: ${data.error}`;
+                    output.style.color = '#e53e3e';
+                } else {
+                    output.innerHTML = `
+                        <strong>File Analysis Complete:</strong><br>
+                        📄 Name: ${data.name}<br>
+                        📋 Type: ${data.type}<br>
+                        📏 Size: ${data.size.toLocaleString()} bytes
+                    `;
+                    output.style.color = '#38a169';
+                }
+            })
+            .catch(error => {
+                output.textContent = 'Network error occurred';
+                output.style.color = '#e53e3e';
+            });
+        });
+    </script>
+</body>
+</html>
